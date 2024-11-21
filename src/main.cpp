@@ -5,7 +5,7 @@
 #define COLUMNS 8
 #define ROWS 8
 
-void drawRec(sf::RenderWindow &window) {
+void drawRec(sf::RenderWindow& window) {
   sf::RectangleShape cell_shape(sf::Vector2f(CELL_SIZE - 3, CELL_SIZE - 3));
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLUMNS; j++) {
@@ -35,6 +35,7 @@ int main() {
             case sf::Mouse::Left: {
               int mouse_x = sf::Mouse::getPosition(window).x / CELL_SIZE;
               int mouse_y = sf::Mouse::getPosition(window).y / CELL_SIZE;
+              std::cout << mouse_x << " " << mouse_y << "\n";
               std::cout << "clicked" << "\n";
             }
               window.clear();

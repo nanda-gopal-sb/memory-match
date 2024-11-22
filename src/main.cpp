@@ -15,39 +15,72 @@ struct Cell {
   int y;
   bool open;
   bool openPerm;
-  Cell(int x1, int y1, int num) {
+  Cell(int x1, int y1) {
     x = x1;
     y = y1;
-    open = false;
+    open = true;
     openPerm = false;
-    number = num;
   }
 };
 
 std::vector<Cell> cells;
 
-sf::Font font;
-bool checkInArray(int num) {
-  int count = 0;
+bool isWin() {
+  bool win = true;
   for (auto cell : cells) {
-    if (cell.number == num) {
-      count++;
+    if (!cell.openPerm) {
+      return false;
     }
   }
-  if (count >= 32) {
-    return true;
+  return true;
+}
+
+sf::Font font;
+bool isInArray(int num, std::vector<int>& arr) {
+  for (auto nums : arr) {
+    if (nums == num)
+      return true;
   }
   return false;
 }
-int getRand() {
+
+int getCount(int toCheck) {
+  int count = 0;
+  for (auto cell : cells) {
+    if (cell.number == toCheck) {
+      count++;
+    }
+  }
+  return count;
+}
+void fillNums() {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> distrib(1, 32);
-  int rand = distrib(gen);
-  while (checkInArray(rand)) {
-    rand = distrib(gen);
+  std::uniform_int_distribution<> distrib(0, 63);
+  int rand = -1;
+  std::vector<int> arr;
+  for (int i = 1; i <= 32; i++) {
+    for (int j = 0; j < 2; j++) {
+      while (isInArray(rand, arr)) {
+        rand = distrib(gen);
+      }
+      arr.push_back(rand);
+      cells[rand].number = i;
+    }
   }
-  return rand;
+  for (auto cell : cells) {
+    if (cell.number == 1) {
+      std::cout << "hit" << "\n";
+      std::cout << cell.x << "\n";
+      std::cout << cell.y << "\n";
+    }
+    if (cell.number == 0) {
+      std::cout << "hit" << "\n";
+      std::cout << cell.x << "\n";
+      std::cout << cell.y << "\n";
+      cell.number = 1;
+    }
+  }
 }
 
 sf::Text DrawText() {
@@ -61,7 +94,7 @@ sf::Text DrawText() {
     text.setCharacterSize(64);  // in pixels, not points!
 
     // set the color
-    text.setFillColor(sf::Color::Green);
+    text.setFillColor(sf::Color(0, 0, 0));
   }
   return text;
 }
@@ -70,9 +103,11 @@ void fillCell() {
   for (int a = 0; a < ROWS; a++) {
     for (int b = 0; b < COLUMNS; b++) {
       // cells.push_back(Cell(b, a, 4));
-      cells.push_back(Cell(b, a, getRand()));
+      cells.push_back(Cell(b, a));
     }
   }
+  fillNums();
+  // std::cout << cells.size() << "\n";
 }
 void drawRec(sf::RenderWindow& window) {
   auto text = DrawText();
@@ -81,6 +116,10 @@ void drawRec(sf::RenderWindow& window) {
     for (int j = 0; j < COLUMNS; j++) {
       text.setPosition(CELL_SIZE * i, CELL_SIZE * j);
       text.setString(std::to_string(cells[i + COLUMNS * j].number));
+      // if (cells[i + COLUMNS * j].number == 0) {
+      //   text.setString("1");
+      // } else
+      //   text.setString(std::to_string(cells[i + COLUMNS * j].number));
       cell_shape.setPosition(CELL_SIZE * i, CELL_SIZE * j);
       if (!cells[i + COLUMNS * j].open) {
         cell_shape.setFillColor(sf::Color(73, 98, 185));
@@ -111,6 +150,7 @@ bool isCorrect() {
     cells[arr[1]].openPerm = true;
     cells[arr[0]].open = false;
     cells[arr[1]].open = false;
+    free(arr);
     return true;
   } else {
     cells[arr[0]].open = false;
@@ -131,7 +171,7 @@ int main() {
       switch (event.type) {
         case sf::Event::Closed: {
           window.close();
-          break;
+          continue;
         }
         case sf::Event::MouseButtonReleased: {
           switch (event.mouseButton.button) {

@@ -9,7 +9,7 @@
 #define ROWS 8
 #define FONT_HEIGHT = 16
 struct Cell {
-  int number = 0;
+  int number = 1;
   int count;
   int x;
   int y;
@@ -18,7 +18,7 @@ struct Cell {
   Cell(int x1, int y1) {
     x = x1;
     y = y1;
-    open = true;
+    open = false;
     openPerm = false;
   }
 };
@@ -44,15 +44,6 @@ bool isInArray(int num, std::vector<int>& arr) {
   return false;
 }
 
-int getCount(int toCheck) {
-  int count = 0;
-  for (auto cell : cells) {
-    if (cell.number == toCheck) {
-      count++;
-    }
-  }
-  return count;
-}
 void fillNums() {
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -68,19 +59,6 @@ void fillNums() {
       cells[rand].number = i;
     }
   }
-  for (auto cell : cells) {
-    if (cell.number == 1) {
-      std::cout << "hit" << "\n";
-      std::cout << cell.x << "\n";
-      std::cout << cell.y << "\n";
-    }
-    if (cell.number == 0) {
-      std::cout << "hit" << "\n";
-      std::cout << cell.x << "\n";
-      std::cout << cell.y << "\n";
-      cell.number = 1;
-    }
-  }
 }
 
 sf::Text DrawText() {
@@ -88,13 +66,11 @@ sf::Text DrawText() {
   if (!font.loadFromFile("assests/daFont.ttf")) {
     std::cout << "unable";
   } else {
-    // select the font
-    text.setFont(font);  // font is a sf::Font
-    // set the string to display
+    text.setFont(font);         // font is a sf::Font
     text.setCharacterSize(64);  // in pixels, not points!
 
     // set the color
-    text.setFillColor(sf::Color(0, 0, 0));
+    text.setFillColor(sf::Color(26, 127, 0));  // rgba(26, 127, 0, 0.8)
   }
   return text;
 }
@@ -107,7 +83,6 @@ void fillCell() {
     }
   }
   fillNums();
-  // std::cout << cells.size() << "\n";
 }
 void drawRec(sf::RenderWindow& window) {
   auto text = DrawText();
@@ -116,10 +91,6 @@ void drawRec(sf::RenderWindow& window) {
     for (int j = 0; j < COLUMNS; j++) {
       text.setPosition(CELL_SIZE * i, CELL_SIZE * j);
       text.setString(std::to_string(cells[i + COLUMNS * j].number));
-      // if (cells[i + COLUMNS * j].number == 0) {
-      //   text.setString("1");
-      // } else
-      //   text.setString(std::to_string(cells[i + COLUMNS * j].number));
       cell_shape.setPosition(CELL_SIZE * i, CELL_SIZE * j);
       if (!cells[i + COLUMNS * j].open) {
         cell_shape.setFillColor(sf::Color(73, 98, 185));
@@ -127,16 +98,16 @@ void drawRec(sf::RenderWindow& window) {
       }
 
       if (cells[i + COLUMNS * j].openPerm || cells[i + COLUMNS * j].open) {
-        cell_shape.setFillColor(sf::Color(100, 100, 100));
+        cell_shape.setFillColor(sf::Color(255, 136, 0));
         window.draw(cell_shape);
         window.draw(text);
       }
     }
   }
 }
-bool isCorrect() {
+bool checkIfCorrectAndClear() {
   int count = 0;
-  int* arr = new int[2];
+  int arr[2] = {0};
   for (int i = 0; i < cells.size(); i++) {
     if (count == 2)
       break;
@@ -150,46 +121,43 @@ bool isCorrect() {
     cells[arr[1]].openPerm = true;
     cells[arr[0]].open = false;
     cells[arr[1]].open = false;
-    free(arr);
     return true;
   } else {
     cells[arr[0]].open = false;
     cells[arr[1]].open = false;
-    free(arr);
     return false;
   }
 }
 
 int main() {
-  int click = 0;
+  int opened = 0;
   fillCell();
-  std::cout << cells.size();
   sf::RenderWindow window = sf::RenderWindow({640u, 640u}, "memory-match");
   window.setFramerateLimit(60);
   while (window.isOpen()) {
     for (auto event = sf::Event(); window.pollEvent(event);) {
-      switch (event.type) {
-        case sf::Event::Closed: {
-          window.close();
-          continue;
-        }
-        case sf::Event::MouseButtonReleased: {
-          switch (event.mouseButton.button) {
-            // If the LMB is released
-            case sf::Mouse::Left: {
-              if (click < 2) {
-                int mouse_x = sf::Mouse::getPosition(window).x / CELL_SIZE;
-                int mouse_y = sf::Mouse::getPosition(window).y / CELL_SIZE;
-                cells[mouse_x + mouse_y * COLUMNS].open = true;
-                click++;
-              } else {
-                if (isCorrect()) {
-                }
-                click = 0;
-              }
+      if (event.type == sf::Event::MouseButtonPressed) {
+        switch (event.mouseButton.button) {
+          case sf::Mouse::Left: {
+            if (opened == 2) {
+              opened = 0;
+              bool lol = checkIfCorrectAndClear();
+              int mouse_x = sf::Mouse::getPosition(window).x / CELL_SIZE;
+              int mouse_y = sf::Mouse::getPosition(window).y / CELL_SIZE;
+              cells[mouse_x + mouse_y * COLUMNS].open = true;
+              opened++;
+            } else {
+              int mouse_x = sf::Mouse::getPosition(window).x / CELL_SIZE;
+              int mouse_y = sf::Mouse::getPosition(window).y / CELL_SIZE;
+              cells[mouse_x + mouse_y * COLUMNS].open = true;
+              opened++;
             }
           }
         }
+      }
+      if (event.type == sf::Event::Closed) {
+        window.close();
+        cells.clear();
       }
     }
     window.clear();

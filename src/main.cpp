@@ -25,6 +25,7 @@ struct Cell {
 
 std::vector<Cell> cells;
 
+// to check for win
 bool isWin() {
   bool win = true;
   for (auto cell : cells) {
@@ -35,7 +36,7 @@ bool isWin() {
   return true;
 }
 
-sf::Font font;
+// to check if the index is already accounted for
 bool isInArray(int num, std::vector<int>& arr) {
   for (auto nums : arr) {
     if (nums == num)
@@ -47,7 +48,7 @@ bool isInArray(int num, std::vector<int>& arr) {
 void fillNums() {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> distrib(0, 63);
+  std::uniform_int_distribution<> distrib(0, 63);  // randum number gen
   int rand = -1;
   std::vector<int> arr;
   for (int i = 1; i <= ((ROWS * COLUMNS) / 2); i++) {
@@ -62,6 +63,7 @@ void fillNums() {
 }
 
 sf::Text DrawText() {
+  sf::Font font;
   sf::Text text;
   if (!font.loadFromFile("assests/daFont.ttf")) {
     std::cout << "unable";
@@ -117,7 +119,7 @@ void drawRec(sf::RenderWindow& window, bool drawBlack) {
     }
   }
 }
-void text(sf::RenderWindow& window, bool fin) {
+void text(sf::RenderWindow& window) {
   auto text = DrawText();
   text.setString("Victory is yours");
   text.setPosition(0, 0);

@@ -25,7 +25,8 @@ struct Cell {
 
 std::vector<Cell> cells;
 sf::Font font;
-
+int clicks_num = 0;
+sf::Time elapsed1;
 // to check for win
 bool isWin() {
   bool win = true;
@@ -63,6 +64,18 @@ void fillNums() {
   }
 }
 
+sf::Text DrawText(int lmao) {
+  sf::Text text;
+  if (!font.loadFromFile("assests/daFont.ttf")) {
+    std::cout << "unable";
+  } else {
+    text.setFont(font);
+    text.setCharacterSize(32);
+    text.setFillColor(sf::Color(255, 255, 255));
+  }
+  return text;
+}
+
 sf::Text DrawText() {
   sf::Text text;
   if (!font.loadFromFile("assests/daFont.ttf")) {
@@ -84,17 +97,35 @@ void fillCell() {
   }
   fillNums();
 }
-void drawRec(sf::RenderWindow& window, bool drawBlack) {
+void black() {
+  sf::RectangleShape cell_shape(sf::Vector2f(CELL_SIZE - 3, CELL_SIZE - 3));
+  for (int i = 0; i < ROWS; i++) {
+    for (int j = 0; j < COLUMNS; j++) {
+      cell_shape.setPosition(CELL_SIZE * i, CELL_SIZE * j);
+      cell_shape.setFillColor(sf::Color(0, 0, 0));
+    }
+  }
+}
+void drawRec(sf::RenderWindow& window, bool close, bool win) {
   auto text = DrawText();
   sf::RectangleShape cell_shape(sf::Vector2f(CELL_SIZE - 3, CELL_SIZE - 3));
-  if (drawBlack) {
-    for (int i = 0; i < ROWS; i++) {
-      for (int j = 0; j < COLUMNS; j++) {
-        cell_shape.setPosition(CELL_SIZE * i, CELL_SIZE * j);
-        cell_shape.setFillColor(sf::Color(0, 0, 0));
-      }
-    }
+  if (close) {
+    text = DrawText(9);
+    text.setPosition(0, 0);
+    std::string str1("The number of clicks you made -");
+    text.setString(str1.append(std::to_string(clicks_num)));
+    window.draw(text);
+    auto text2 = DrawText(8);
+    text2.setPosition(0, 100);
+    str1 = "The time you took - ";
+    text2.setString(str1.append(std::to_string(elapsed1.asSeconds())));
+    window.draw(text2);
+    // black();
     return;
+  }
+  if (win) {
+    text.setPosition(100, 100);
+    text.setString(std::to_string(clicks_num));
   }
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLUMNS; j++) {
@@ -148,35 +179,37 @@ bool checkIfCorrectAndClear() {
     return false;
   }
 }
-
+void change(sf::RenderWindow& window) {
+  int mouse_x = sf::Mouse::getPosition(window).x / CELL_SIZE;
+  int mouse_y = sf::Mouse::getPosition(window).y / CELL_SIZE;
+  cells[mouse_x + mouse_y * COLUMNS].open = true;
+}
 int main() {
+  int mouse_x = 0;
+  int mouse_y = 0;
   int opened = 0;
   bool win = false;
   fillCell();
   sf::RenderWindow window = sf::RenderWindow({640u, 640u}, "memory-match");
   window.setFramerateLimit(60);
+  sf::Clock clock;
   while (window.isOpen()) {
     for (auto event = sf::Event(); window.pollEvent(event);) {
-      if (event.type == sf::Event::MouseButtonPressed) {
-        switch (event.mouseButton.button) {
-          case sf::Mouse::Left: {
-            if (opened == 2) {
-              opened = 0;
-              bool isCorrect = checkIfCorrectAndClear();
-              if (isWin()) {
-                win = true;
-              }
-              int mouse_x = sf::Mouse::getPosition(window).x / CELL_SIZE;
-              int mouse_y = sf::Mouse::getPosition(window).y / CELL_SIZE;
-              cells[mouse_x + mouse_y * COLUMNS].open = true;
-              opened++;
-            } else {
-              int mouse_x = sf::Mouse::getPosition(window).x / CELL_SIZE;
-              int mouse_y = sf::Mouse::getPosition(window).y / CELL_SIZE;
-              cells[mouse_x + mouse_y * COLUMNS].open = true;
-              opened++;
-            }
+      if (event.type == sf::Event::MouseButtonPressed &&
+          event.mouseButton.button == sf::Mouse::Left) {
+        clicks_num++;
+        if (opened == 2) {
+          opened = 0;
+          checkIfCorrectAndClear();
+          if (isWin()) {
+            win = true;
+            elapsed1 = clock.getElapsedTime();
           }
+          change(window);
+          opened++;
+        } else {
+          change(window);
+          opened++;
         }
       }
       if (event.type == sf::Event::Closed) {
@@ -185,7 +218,7 @@ int main() {
       }
     }
     window.clear();
-    drawRec(window, win);
+    drawRec(window, win, false);
     window.display();
   }
 }

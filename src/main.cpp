@@ -24,6 +24,7 @@ struct Cell {
 };
 
 std::vector<Cell> cells;
+sf::Font font;
 
 // to check for win
 bool isWin() {
@@ -63,7 +64,6 @@ void fillNums() {
 }
 
 sf::Text DrawText() {
-  sf::Font font;
   sf::Text text;
   if (!font.loadFromFile("assests/daFont.ttf")) {
     std::cout << "unable";

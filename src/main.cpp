@@ -50,7 +50,7 @@ bool isInArray(int num, std::vector<int>& arr) {
 void fillNums() {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<> distrib(0, 63);  // randum number gen
+  std::uniform_int_distribution<> distrib(0, 63);
   int rand = -1;
   std::vector<int> arr;
   for (int i = 1; i <= ((ROWS * COLUMNS) / 2); i++) {
@@ -106,10 +106,10 @@ void black() {
     }
   }
 }
-void drawRec(sf::RenderWindow& window, bool close, bool win) {
+void drawRec(sf::RenderWindow& window, bool win, bool close) {
   auto text = DrawText();
   sf::RectangleShape cell_shape(sf::Vector2f(CELL_SIZE - 3, CELL_SIZE - 3));
-  if (close) {
+  if (win) {
     text = DrawText(9);
     text.setPosition(0, 0);
     std::string str1("The number of clicks you made -");
@@ -120,12 +120,11 @@ void drawRec(sf::RenderWindow& window, bool close, bool win) {
     str1 = "The time you took - ";
     text2.setString(str1.append(std::to_string(elapsed1.asSeconds())));
     window.draw(text2);
-    // black();
     return;
   }
-  if (win) {
-    text.setPosition(100, 100);
-    text.setString(std::to_string(clicks_num));
+  if (close) {
+    black();
+    return;
   }
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLUMNS; j++) {
@@ -189,6 +188,7 @@ int main() {
   int mouse_y = 0;
   int opened = 0;
   bool win = false;
+  bool close = false;
   fillCell();
   sf::RenderWindow window = sf::RenderWindow({640u, 640u}, "memory-match");
   window.setFramerateLimit(60);
@@ -203,6 +203,7 @@ int main() {
           checkIfCorrectAndClear();
           if (isWin()) {
             win = true;
+            std::cout << "WIn\n";
             elapsed1 = clock.getElapsedTime();
           }
           change(window);
@@ -214,11 +215,11 @@ int main() {
       }
       if (event.type == sf::Event::Closed) {
         window.close();
-        win = true;
+        close = true;
       }
     }
     window.clear();
-    drawRec(window, win, false);
+    drawRec(window, win, close);
     window.display();
   }
 }

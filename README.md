@@ -1,6 +1,5 @@
 ## Table of Contents
 - [Introduction](#introduction)
-- [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
@@ -8,12 +7,6 @@
 
 ## Introduction
 Memory Match is a fun and engaging game where players must match pairs of cards. This project is a C++ implementation of the classic game.
-
-## Features
-- Simple and intuitive gameplay
-- Multiple difficulty levels
-- Timer to track your performance
-- High score tracking
 
 ## Installation
 To install the game, follow these steps:

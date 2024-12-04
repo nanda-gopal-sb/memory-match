@@ -9,17 +9,31 @@
 Memory Match is a fun and engaging game where players must match pairs of cards. This project is a C++ implementation of the classic game.
 
 ## Installation
-To install the game, follow these steps:
+To compile the game, follow these steps(On linux):
 
-1. Clone the repository:
+1.  Install the dependencies
+```sudo apt update
+    sudo apt install \
+    libxrandr-dev \
+    libxcursor-dev \
+    libudev-dev \
+    libfreetype-dev \
+    libopenal-dev \
+    libflac-dev \
+    libvorbis-dev \
+    libgl1-mesa-dev \
+    libegl1-mesa-dev
+```
+
+2. Clone the repository:
     ```sh
     git clone https://github.com/nanda-gopal-sb/memory-match.git
     ```
-2. Navigate to the project directory:
+3. Navigate to the project directory:
     ```sh
     cd memory-match
     ```
-3. Compile the project using CMake:
+4. Compile the project using CMake:
     ```sh
     cmake -B build
     cmake --build build

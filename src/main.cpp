@@ -57,6 +57,8 @@ bool isInArray(int num, std::vector<int> &arr)
   return false;
 }
 
+// this appraoch is very expensive, as I have to perform linear searches about 64 times
+// currently looking for better ways to do this
 void fillNums()
 {
   std::random_device rd;
@@ -78,7 +80,8 @@ void fillNums()
   }
 }
 
-sf::Text DrawText(int lmao)
+// The text handler for victory screen
+sf::Text DrawTextForVictory()
 {
   sf::Text text;
   if (!font.loadFromFile("assests/daFont.ttf"))
@@ -94,7 +97,8 @@ sf::Text DrawText(int lmao)
   return text;
 }
 
-sf::Text DrawText()
+// The text handler for digits inside squares
+sf::Text DrawTextForBoard()
 {
   sf::Text text;
   if (!font.loadFromFile("assests/daFont.ttf"))
@@ -116,56 +120,47 @@ void fillCell()
   {
     for (int b = 0; b < COLUMNS; b++)
     {
-      // cells.push_back(Cell(b, a, 4));
-      cells.push_back(Cell(b, a));
+      cells.push_back(Cell(b, a)); // inversed as SFML has invered axis for some reason
     }
   }
-  fillNums();
+  fillNums(); // fills numbers into the objects as well
 }
-void black()
+// this is the longest and most important function(I really need to refactor)
+void drawBoard(sf::RenderWindow &window, bool win, bool close)
 {
-  sf::RectangleShape cell_shape(sf::Vector2f(CELL_SIZE - 3, CELL_SIZE - 3));
-  for (int i = 0; i < ROWS; i++)
+  auto text = DrawTextForBoard();                                            // gets the text config for board
+  sf::RectangleShape cell_shape(sf::Vector2f(CELL_SIZE - 3, CELL_SIZE - 3)); // subtracting 3 to get the thickness of the spacing
+  if (win)                                                                   // win is true when player wins(duhh)
   {
-    for (int j = 0; j < COLUMNS; j++)
-    {
-      cell_shape.setPosition(CELL_SIZE * i, CELL_SIZE * j);
-      cell_shape.setFillColor(sf::Color(0, 0, 0));
-    }
-  }
-}
-void drawRec(sf::RenderWindow &window, bool win, bool close)
-{
-  auto text = DrawText();
-  sf::RectangleShape cell_shape(sf::Vector2f(CELL_SIZE - 3, CELL_SIZE - 3));
-  if (win)
-  {
-    text = DrawText(9);
+    // getting the text config
+    text = DrawTextForVictory();
     text.setPosition(0, 0);
-    std::string str1("The number of clicks you made -");
+    std::string str1("The number of clicks-\n");
     text.setString(str1.append(std::to_string(clicks_num)));
     window.draw(text);
-    auto text2 = DrawText(8);
+    auto text2 = DrawTextForVictory();
     text2.setPosition(0, 100);
-    str1 = "The time you took - ";
+    str1 = "The time you took-\n";
     text2.setString(str1.append(std::to_string(elapsed1.asSeconds())));
     window.draw(text2);
-    return;
+    return; // returning as we dont want this function anymore
   }
-  if (close)
+  if (close) // when the x button is pressed
   {
-    black();
+    window.clear();
     return;
   }
+
+  // nested loops
   for (int i = 0; i < ROWS; i++)
   {
     for (int j = 0; j < COLUMNS; j++)
     {
-      text.setPosition(CELL_SIZE * i, CELL_SIZE * j);
-      text.setString(std::to_string(cells[i + COLUMNS * j].number));
-      cell_shape.setPosition(CELL_SIZE * i, CELL_SIZE * j);
+      text.setPosition(CELL_SIZE * i, CELL_SIZE * j);                // sets the text on top of that rectangle
+      text.setString(std::to_string(cells[i + COLUMNS * j].number)); // sets the string to that number assigned to cell
+      cell_shape.setPosition(CELL_SIZE * i, CELL_SIZE * j);          // sets the position of the rectangle also
 
-      if (!cells[i + COLUMNS * j].open)
+      if (!cells[i + COLUMNS * j].open) // if a cells is closed, ie usual state
       {
         cell_shape.setFillColor(sf::Color(73, 98, 185));
         window.draw(cell_shape);
@@ -184,13 +179,6 @@ void drawRec(sf::RenderWindow &window, bool win, bool close)
       }
     }
   }
-}
-void text(sf::RenderWindow &window)
-{
-  auto text = DrawText();
-  text.setString("Victory is yours");
-  text.setPosition(0, 0);
-  window.draw(text);
 }
 bool checkIfCorrectAndClear()
 {
@@ -221,7 +209,7 @@ bool checkIfCorrectAndClear()
     return false;
   }
 }
-void change(sf::RenderWindow &window)
+void getMousPos(sf::RenderWindow &window)
 {
   int mouse_x = sf::Mouse::getPosition(window).x / CELL_SIZE;
   int mouse_y = sf::Mouse::getPosition(window).y / CELL_SIZE;
@@ -243,7 +231,7 @@ int main()
     for (auto event = sf::Event(); window.pollEvent(event);)
     {
       if (event.type == sf::Event::MouseButtonPressed &&
-          event.mouseButton.button == sf::Mouse::Left)
+          event.mouseButton.button == sf::Mouse::Left && !win)
       {
         clicks_num++;
         if (opened == 2)
@@ -256,12 +244,12 @@ int main()
             std::cout << "WIn\n";
             elapsed1 = clock.getElapsedTime();
           }
-          change(window);
+          getMousPos(window);
           opened++;
         }
         else
         {
-          change(window);
+          getMousPos(window);
           opened++;
         }
       }
@@ -272,7 +260,7 @@ int main()
       }
     }
     window.clear();
-    drawRec(window, win, close);
+    drawBoard(window, win, close);
     window.display();
   }
 }
